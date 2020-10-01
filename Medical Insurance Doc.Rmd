@@ -1,0 +1,1178 @@
+---
+title: "Medical Insurance"
+author: "Chandan Gowda"
+date: "9/30/2020"
+output:
+  word_document: default
+  pdf_document: default
+latex_engine: xelatex
+---
+
+1. BACKGROUND / CONTEXT
+a. Domain
+The purpose of insurance is to provide protection against the risk of any financial loss. It is a contract between the insurer and the insured individual – where the insurer agrees to take the risk of the insured individual against either a future event or uncertain losses in return for a monetary compensation from the insured individual known as a premium.  It is a form of risk management. In addition, insurance not only helps by mitigating risks but can also provide a financial “cushion” against financial burdens suffered. In short, insurance is a safeguard against the uncertainties of life. 
+
+Regarding insurance, there are several types: life, health, vehicle, general liability, property, worker’s compensation, and travel insurance.
+
+In this use case, we will be focusing on health insurance. Health insurance provides coverage against the medical expenses of the insured. Among what is covered is medication, doctor visits, hospital stays and other medical expenses. 
+
+b. Brief Description of the Scenario
+Insurance is based largely on the understanding of risk. Due to this, data plays a crucial role in helping companies make better and well-informed business decisions.  Patients should not be dealt with as one pool, rather each patient should be grouped with others that share similar characteristics. In order to determine and predict the insurance policy costs for individuals, we must assess the individual’s characteristics. These characteristics include age, sex, BMI, number of children, smoking or non-smoking, and the region they reside in. Do these characteristics create an impact on insurance premiums? If so, which characteristics create the most impact and which do not? If no, what else impacts the insurance premiums besides these characteristics? 
+
+c. Decisions of Interest
+To approach the question of how to determine insurance costs, we will be using two analytical models: clustering and regression. 
+
+Cluster analysis is one of the basic models that can be applied into analyzing large data sets. Insured individuals are distinguished into groups with certain, common characteristics. Once we segment the insured individuals into homogeneous groups, it can help calculate future policy rates. The data of each group can be explored, analyzed, and modeled. From there, we can build predictive models for each homogeneous group. 
+
+Regression is another model to predict a continuous or discrete outcome, and it allows you to examine the relationship between two or more variables. With the help of regression, we can determine which input variables (age, sex, BMI, number of children, smoking or non-smoking, and region) are influencing insurance costs. In addition, regression shall be applied per clustered groups in order to provide a higher accuracy.
+
+2. BUSINESS UNDERSTANDING 
+a. Business Objective
+The business objective is to classify by segments, policy holders from the pool of data by clustering the characteristics which are maintained as age, sex, body mass index (BMI), number of children and smoking status.  Studying those characteristics and properly identifying relevant and accurate segments of policy holders will provide a better understanding of the factors influencing the medical charge against each patient. In order to accurately define the relevant segments and factors, we must understand the business closely from the business domain expert, look for patterns in our data analysis and gain extensive insights to extract useful information out of the data. Finally, we will predict future medical charges for the produced segments through multiple linear regression using the gathered characteristics to assist our client (“Insurance Company X”) in the decision-making process of charging an accurate insurance premium to customers. This would be beneficial to both the insurance company and the beneficiary. The client would be able to plan its business, adjust pricing and target the right customers. The beneficiary would be able to find to a suitable plan that’s not one-size-fits-all.
+
+b. Situation Assessment 
+These are the research questions that we shall answer over the course of the project:
+1.	Data assessment (missing values/formats/sources), model of choice, method of analysis?
+2.	What is the input specification that have been used for segmenting policy holders?
+3.	How many clusters have been generated, and the basis for the segmentation?
+4.	What is the unsupervised learning method that have been used for segmenting policy holders?
+5.	What are the performance measures and evaluation results for segmenting policy holders?
+6.	What is the input specification that have been used for cost prediction?
+7.	What are the supervised learning methods that have been used for cost prediction?
+8.	What are the performance measures and evaluation results for cost prediction?
+9.	What are the key limitations that were faced while analyzing the data?
+10.	What are future improvements that are suggested based on current data and models results?
+
+c. Data Mining Goals
+Data mining tasks can be classified into description methods and prediction methods. In this project we will use both unsupervised and supervised learning. Unsupervised learning (i.e. inputs with no given labels at the output) shall be used for data segmentation into meaningful sets or groups while supervised learning (i.e. input with a given label at the output) shall be used for predicting a single “target” or “outcome” variable. 
+
+First, we will use cluster analysis which is about finding groups of objects such that the objects in a group is similar (or related) to one another and different from (or unrelated to) the objects in other groups. This model uses descriptive analytics. The goal is to subdivide a market into distinct subsets of customers where any subset may conceivably be selected as a market target to be reached with a distinct marketing mix. 
+
+Then, we will use regression which is about predicting a value of a given continuous valued variable based on the values of other variables, assuming a linear or nonlinear model of dependency. This model uses predictive analytics. The goal is to predict numerical target (outcome) variable, which is the charges in our case against age, sex, BMI, number of children, region and smoking status.
+
+3. DATA UNDERSTANDING
+a. Data Requirements
+Business understanding determines the data gathering requirements. Based on domain knowledge and challenges, cross-functional meetings are held to govern and analyze all assumed data requirements, covering business scope of work and opportunity at hand.
+
+During data requirements, consolidation of data sources, types and formats are pooled into a data lake.
+
+So, to answer the question, what data do we need? We need to address the dimensionality of problem 
+from dual angels (business and analytical perspectives) to reach a relevant model construction.
+
+The above question is nicely summarized in the business understanding section of the project proposal. We will be using a dataset that contains data about age of primary beneficiary, sex, BMI (body mass index) providing understanding of the body regarding weight and height, region of a person where he/she lives. The data also provides information about the number of children covered by health insurance and whether the person has a smoking habit or not. 
+
+In this project, we will be predicting the premium insurance for policy holders based on the information provided and how these above categories mentioned would be responsible in the predictive analysis. After carefully looking through the data, we will make use of both unsupervised and supervised learning. To segment the data, we will be using clustering process and apply regression on each cluster formed to predict the target variable. 
+
+b. Describe Data
+We will be working on ‘insurance.csv’ data set, which is a cross sectional data.
+Variables: Description
+Age: Age of primary beneficiary 
+Sex: Gender of Female or Male
+BMI: Body mass index, objective index of body weight using the ratio of height to weight
+Children: Number of children covered by health insurance
+Smoker: Status of Yes or No
+Region: The policyholder’s residential area in the USA which includes, northeast, southeast, southwest and northwest
+Charges: Individual medical costs billed by Health Insurance
+
+Now, since we got a brief introduction about data understanding and requirements about the dataset, we will now begin with the coding to review the data in R.
+
+```{r}
+if(!require("pacman")) 
+install.packages("pacman")
+pacman::p_load(ggplot2, caret, rmarkdown, corrplot, knitr, factoextra, forecast, NbClust, fpc, GGally, psych, tidyverse,colorspace, clustMixType, cluster, purrr)
+search()
+theme_set(theme_classic())
+options(digits = 3)
+insurance_data<- read.csv("insurance.csv", header = TRUE)
+```
+
+c. Sources
+We got the description knowledge of the ‘Medical Cost Personal Datasets-Insurance Forecast’ by using Clustering and Regression from the Kaggle website.
+
+https://www.kaggle.com/mirichoi0218/insurance
+
+The data set ‘insurance.csv’ pertaining to the above domain is also obtained from the Kaggle website.
+
+https://www.kaggle.com/mirichoi0218/insurance#insurance.csv
+
+d. Quality
+The dataset ‘Insurance.csv’ obtained from the Kaggle website is not a real dataset i.e., this data was not collected using actual people. This is simulated data based on demographic statistics from the US Census Bureau.
+
+After reviewing the data set in R, we were able to find that ‘insurance.csv’ dataset shows no missing values. We can see in the above summary() results that there is no NA value or missing value. 
+Data accuracy is one of the components of data quality. The above data is very accurate and this can be confirmed with the above function str(), which provides the overall structure of the dataset. The data values stored in the object ‘insurance_data’ are the right values which is represented in a consistent and unambiguous form.
+
+The above data is very much relevant and enough for predicting premium insurance policy holders using clustering and regression with R. The person who will be charged more would be the premium policy holder and we can easily get that information from the variable ‘Charges’. With the help of this information, we will be able to predict which premium would be applied for current /new policy holders. 
+
+4. DATA PREPARATION
+Data preparation or pre- processing is the act of manipulating raw data which may come from different data sources into a form that can readily and accurately be analyzed for business purposes.
+Data preparation is the first step in data mining projects which can include many discrete tasks such as selecting the data, cleaning and preparing the data for building decision support models. Let us discuss each one, and how we implemented various analysis to prepare the insurance.csv dataset.
+
+a. Data Selection
+Data Selection is the process where data relevant to the analysis task are retrieved from the database or source. Sometimes data transformation and consolidation are performed before the data selection process.
+The data set is obtained from Kaggle website, and selection of the dataset was purely based on the following CRISP selection specification requirements which are presented below.
+1. Atomic- Singular, describing only one concept
+2. Traceable- Indicating relationship among data points
+3. Consistent- Steady and stable data
+4. Accurate- Precise, correct and unambiguous
+5. Clear- Readily understood by the user
+6. Complete- Description and contextual references are correct
+7. Concise- Brief but comprehensive
+Considering these above factors into account, data selection was carefully done in R by conducting various visualizations on the insurance.csv dataset. Visualization of the data was mainly done to understand the dataset and ensure whether the data selected, aptly solves the business problem indicated previously. Moreover, this is a simulated dataset containing hypothetical medical expenses for patients in the United States. The data was created using demographic statistics from the US Census Bureau, and thus, approximately reflect real-world conditions.
+The quality of the data set was in its pure form, with no NA or unwanted information present. Thus, the insurance.csv dataset is very much relevant and enough for predicting premium insurance policy holders using clustering and regression using R.
+It is important to give some thought to how the variables presented above in the insurancve.csv dataset may be related to billed medical expenses. For instance, we might expect that older people and smokers are at higher risk of large medical expenses. Unlike many other machine learning methods, in regression analysis, the relationships among the features are typically specified by the user rather than being detected automatically. Let us explore some of these potential relationships in the coming section.
+
+b. Data Cleaning
+Data cleaning is a technique that is applied to remove the noisy data and correct the inconsistencies in data. Data cleaning involves transformations to correct the wrong data. Data cleaning is the second step in data preparation performed as a data pre-processing step while preparing the data for building a decision support model.
+Quality of the data is critical in getting to final analysis. Any data which tend to be incomplete, noisy and inconsistent can affect the results. 
+Let us explore the data and clean it as needed.
+The first approach is to understand the structure of the data and see if any defects or error is present.
+
+```{r}
+names(insurance_data)
+summary(insurance_data) # --> Shows No missing values
+str(insurance_data)
+class(insurance_data)
+dim(insurance_data)
+head(insurance_data)
+describe(insurance_data)
+ggpairs(insurance_data)
+```
+
+The above plot provides lot of information about the data. As we can see, Outliers are clearly shown among region, sex and smoker boxplots. The variable age is positively correlated with the charges and bmi is moderately positively correlated with the charges.
+
+1) Removing Children variable
+No of children variable do not make any sense in the practical terms. No of children should not affect the persons premium charges. Suppose if one person has 4 children and another person have no children, then how will this information help in predicting the persons insurance premium charges? It makes least sense in considering this variable to carry out the further analysis and thus remove the children variable from the dataset.
+
+```{r}
+insurance_data1<-insurance_data[,-4]
+str(insurance_data1)
+```
+
+2) Outliers detection
+
+```{r}
+#age
+ggplot(data = insurance_data1) +
+  (mapping = aes( x = age,y = age )) +
+  geom_boxplot(outlier.colour= "red", outlier.shape=4,
+               outlier.size=1) #No Outliers
+
+#bmi
+ggplot(data = insurance_data1) +
+  (mapping = aes( x =bmi,y = bmi )) +
+  geom_boxplot(outlier.colour= "red", outlier.shape=3,
+               outlier.size=1) #outliers are present
+
+#charges
+ggplot(data = insurance_data1) +
+  (mapping = aes( x = charges,y = charges )) +
+  geom_boxplot(outlier.colour= "red", outlier.shape=2,
+               outlier.size=1) #Outliers are present
+```
+
+Outliers are detected among bmi and charges variables. Outliers can cause problems with certain types of models. In general, removing an outlier will help in model’s performance.
+The below code helps in removing the outliers of the dataset.
+Run this code untill all the outliers are removed (Three times)
+
+```{r}
+Outliners1= boxplot(insurance_data1$bmi)$out
+index1<- which(insurance_data1$bmi %in% Outliners1)
+Outliners2= boxplot(insurance_data1$charges)$out
+index2<- which(insurance_data1$charges %in% Outliners2)
+index3<- unique(c(index1,index2))
+insurance_data1<-insurance_data1[-index3,]
+dim(insurance_data1)
+
+#no outliers
+#bmi
+ggplot(data = insurance_data1) +
+  (mapping = aes( x =bmi,y = bmi )) +
+  geom_boxplot(outlier.colour= "red", outlier.shape=3,
+               outlier.size=1)
+
+#charges
+ggplot(data = insurance_data1) +
+  (mapping = aes( x = charges,y = charges )) +
+  geom_boxplot(outlier.colour= "red", outlier.shape=2,
+               outlier.size=1)
+```
+
+Data vizualization
+
+A super fancy way to show correlation is the use of pairs.panels() function from the psych package. The pairs.panels is splitting into three functional groups that demonstrated three kind of information. The bottom left portion off diagonal shows similar scatterplot matrices before, with additional information such as the mean of two features value given in a red dot; a lowest curve that show a more flexible relationship between two features, and a correlation ellipse (circle) that shows a correlation strength of higher correlation indicated by a more stretchy ellipse. The diagrams in diagonal show the histogram of each respective feature with a distribution curve. Numbers on the top right off diagonal are the correlation value between each two respective features.
+
+```{r}
+pairs.panels(insurance_data1)
+ggpairs(insurance_data1)
+```
+
+Distribution of Premium Charges
+Let us plot histogram of charges to understand the distribution.
+
+```{r}
+hist(insurance_data1$charges, 
+     main="Histogram for Insurance Charges", 
+     xlab="Charges", 
+     border="blue", 
+     col="orange",
+     xlim=c(1000,24000),
+     las=1, 
+     breaks=5)
+```
+
+Type of Distribution: We have a right skewed distribution in which most patients are being charged between 1000− 15000. This indicates that most of the premium charges are around the value mentioned i.e., between 1000 – 15000.
+
+```{r}
+#plots
+plot(charges ~ sex, insurance_data1)
+plot(charges ~ bmi, insurance_data1)
+plot(charges ~ smoker, insurance_data1)
+plot(charges ~ region, insurance_data1)
+```
+
+Analyzing relationship among variables
+BMI frequency: Most of the BMI frequency is concentrated between 25 - 35.
+
+age, bmi vs charges
+Hist of age
+Most of the AGE frequency is concentrated between 20 – 60
+
+```{r}
+hist(insurance_data1$age, 
+     main="Histogram for AGE", 
+     xlab="bmi", 
+     border="black", 
+     col="lightgreen",
+     xlim=c(15,65),
+     las=1, 
+     breaks=5)
+```
+
+age(mean analysis of charges)
+
+```{r}
+analysis <- group_by(insurance_data1, age)
+analysis1 <-summarise(analysis, count=n(), rate1 = mean(charges))
+ggplot(analysis1, aes(age, rate1))+geom_point(aes(size = count, color = factor(rate1)), alpha=1/2)+
+  theme(legend.position = "none")+
+  labs(x = "age", y = "mean charges")
+```
+
+hist of bmi
+
+```{r}
+hist(insurance_data1$bmi, 
+     main="Histogram for BMI", 
+     xlab="bmi", 
+     border="black", 
+     col="lightblue",
+     xlim=c(10,50),
+     las=1, 
+     breaks=5)
+```
+
+bmi(mean analysis of charges)
+
+```{r}
+analysis <- group_by(insurance_data1, bmi)
+analysis1 <-summarise(analysis, count=n(), rate1 = mean(charges))
+ggplot(analysis1, aes(bmi, rate1))+geom_point(aes(size = count, color = factor(rate1)), alpha=1/2)+
+  theme(legend.position = "none")+
+  labs(x = "bmi", y = "mean charges")
+```
+
+correlation plot
+Correlations: Age and charges have a correlation of 0.516 while bmi and charges have a correlation of -0.0566
+
+```{r}
+ggpairs(insurance_data1[,-c(2,4,5,7,8)])
+```
+Relationship between BMI and Age: The correlation for these two variables is 0.149 which is not that great. Therefore, we can disregard that age has a huge influence on BMI.
+
+age, bmi Vs sex
+
+The charges do increase with respect to age. There is no clear difference in charges for male vs female with respect to their age and bmi.
+
+```{r}
+species_col <- rev(rainbow_hcl(2))[(insurance_data1$sex)]
+pairs(insurance_data1[,-c(2,4,5,7,8)], col = species_col,
+      lower.panel = NULL,
+      cex.labels=2, pch=19, cex = 1.2)
+#add a legend
+par(xpd = TRUE)
+legend(x = 0.05, y = 0.4, cex = 0.6,
+       legend = as.character(levels(insurance_data1$smoker)), title="Smoker",
+       fill = unique(species_col))
+par(xpd = NA)
+```
+
+age, bmi Vs smoker
+age
+
+Despite the BMI indicator is used to measure health risk for an individual, the feature is not as important as knowing whether the individual is a smoker or non-smoker.
+
+Smoker tends to incur a much higher charge as compared to non-smoker. There is no smoker beyond BMI > 30 but when the BMI of a non- smoker goes beyond 30, the charges increases to a minimum of 20000 around. Smoker with BMI < 30 generally have charges incurred above 20000. The same goes with the age as well. As the age increases, the charges are more for smokers than for non-smokers.
+
+```{r}
+ggplot(data = insurance_data1) +
+  (mapping = aes( x =age, y = charges, color = smoker)) +
+  geom_point()+
+  geom_smooth()
+
+#bmi
+ggplot(data = insurance_data1) +
+  (mapping = aes( x =bmi, y = charges, color = smoker)) +
+  geom_point()+
+  geom_smooth()
+```
+
+age, bmi, sex, smoker Vs region
+age
+
+The charges do increase with respect to age and bmi. There is no clear difference in charges for smoker’s vs non-smoker with respect to their age and bmi across different regions.
+
+The below boxplot shows that, across south west, north west and south east, the charges are rather similar. However, individuals from north east has a wider range of charges for female. It is the only distinguishing character regarding region. It seems that region too has very less influence over the charges.
+
+```{r}
+ggplot(data = insurance_data1) +
+  (mapping = aes( x =age, y = charges, color=smoker)) +
+  geom_point()+
+  facet_wrap(~region , nrow = 2)
+
+#bmi
+ggplot(data = insurance_data1) +
+  (mapping = aes( x =bmi, y = charges, color=smoker)) +
+  geom_point()+
+  facet_wrap(~region , nrow = 2)
+
+#sex
+ggplot(data = insurance_data1) +
+  (mapping = aes( x =region, y = charges, color=sex)) +
+  geom_boxplot()
+```
+
+According to CRISP-DM, the data preparation phase covers all activities to construct the final dataset from the initial raw data in order to prepare the data for further processing. After cleaning the data, its time to prepare the data accordingly to build models for predicting premium medical charges.
+
+Age analysis
+The age analysis graph shows that there is positive correlation between age and charges. For some data values, the increase is exceptionally smooth and linear, and for some other data points the increase is not perfectly linear. The data can be divided approximately into two segments as shown in the graph.
+
+Turning Age into Categorical Variables:
+Early Age: from 15 - 24
+Prime Age: from 25 – 54
+Mature Age: 55 or older
+
+https://www.indexmundi.com/united_states/age_structure.html
+
+
+DATA PREPARATION
+converting Age to Categorical variables
+
+```{r}
+catAge<- cut(insurance_data1$age,breaks=c(15,24,54,64),labels=c("Early_Age","Prime_Age","Mature_Age"))
+insurance_data1<-cbind(insurance_data1,catAge)
+table(insurance_data1$catAge)
+
+aggregate(insurance_data1$charges,list(insurance_data1$catAge),mean)
+```
+
+The mean charges of each category are shown above. It clearly indicates that the Mature_age group of people has more charges and are at high risk.
+
+BMI analysis
+Body mass index, or BMI, is a way to help figure out if you are at a healthy weight for your height. BMI is a number based on your weight and height. In general, the higher the number, the more body fat a person has. BMI is often used as a screening tool to decide if your weight might be putting you at risk for health problems such as heart disease, diabetes, and cancer.
+
+BMI is used to broadly define different weight groups in adults 20 years old or older. The same groups apply to both men and women.
+Turning BMI into Categorical Variables:
+Under Weight: Body Mass Index (BMI)  <  18.5
+Normal Weight: Body Mass Index (BMI)  ≥  18.5 and Body Mass Index (BMI)  <  24.9
+Overweight: Body Mass Index (BMI)  ≥  25 and Body Mass Index (BMI)  <  29.9
+Obese: Body Mass Index (BMI)  >  30
+https://www.cancer.org/cancer/cancer-causes/diet-physical-activity/body-weight-and-cancer-risk/adult-bmi.html
+
+```{r}
+#converting BMI to Categorical variables
+catBMI<- cut(insurance_data1$bmi,breaks=c(0,18.499,24.999,29.999,60),labels=c("Underweight","Normal","Overweight","Obese"))
+insurance_data1<-cbind(insurance_data1,catBMI)
+table(insurance_data1$catBMI)
+
+aggregate(insurance_data1$charges,list(insurance_data1$catBMI),mean)
+```
+
+The mean charges of each category of BMI is shown above. It clearly indicates that the Normal and overweight group of people has more charges and are at high risk.
+
+After doing the transformation of age and bmi to categorical data, the final set of data is obtained which is used for further analysis of modeling. Let our final data frame be named as “newInsuranceData”.
+
+```{r}
+#Creating new Data Set
+newInsuranceData <- cbind(insurance_data1[c(6,2,4,5)],catAge,catBMI)
+str(newInsuranceData)
+summary(newInsuranceData)
+```
+
+b. What type of decision-making model(s) is appropriate for the decision‐making tasks?
+The business objective is to classify by segments, policy holders from the pool of data by clustering the characteristics which are maintained as age, sex, body mass index (BMI), regions and smoking status. Then predict future medical charges for the produced segments through multiple linear regression using the gathered characteristics to assist our client in the decision-making process of charging an accurate insurance premium to customers.
+Unsupervised Learning:
+1) Clustering: Clustering is a technique of data segmentation that partitions the data into several groups based on their similarity. Basically, we group the data through a statistical operation. These smaller groups that are formed from the bigger data are known as clusters. 
+These cluster exhibit the following properties: 
+They are discovered while carrying out the operation and the knowledge of their number is not known in advance.
+Clusters are the aggregation of similar objects that share common characteristics.
+Clustering is the most widespread and popular method of Data Analysis and Data Mining. It used in cases where the underlying input data has a colossal volume and we are tasked with finding similar subsets that can be analyzed in several ways. 
+In the first stage we will do a cluster analysis on the dataset and see what we discovered through visualization so far match and how well the clusters form according to the risk class definition of the medical insurance charges. 
+Supervised Learning:
+2) Multiple Linear Regression: A multiple linear regression (MLR) model describes a dependent variable y by independent variables x1, x2, ..., xP (P > 1) is expressed by the equation as follows, where the numbers α and βk (k = 1, 2, ..., P) are the parameters, and ϵ is the error term.
+                                                                
+We create the regression model using the lm() function in R. The model determines the value of the coefficients using the input data. Next, we can predict the value of our response variable i.e., charges for a given set of predictor variables defined earlier using these coefficients.
+lm() Function:
+This function creates the relationship model between the predictor and the response variable.
+Syntax:
+The basic syntax for lm() function in multiple regression is −
+lm(y ~ x1+x2+x3...,data)
+Following is the description of the parameters used −
+1. Formula is a symbol presenting the relation between the response variable and predictor variables.
+2. Data is the vector on which the formula will be applied.
+
+c. Provide rationale for choice of model(s)
+Here are the following results from the visualization analysis performed.
+1. Age and Charges: We can see there is a slight increase in charges depending on the age of the patient.
+2. BMI and Charges: We can see there is also a very slight increase in charges depending on the bmi of the patient.
+3. Smoking: Smoker is the grand major factor for the patient’s habit having high charges.
+4. Sex and Region: No major influence of these two variables against charges or any other predictor variables.
+Are these Variables in the form of Clusters? 
+As seen in the charts, when smoker variable is plotted against charges with age and bmi factor, there is clear evidence of formation of segments among the data points. From the business point of view and as well from our data analysis, people with smoking habits are at high risk. Thus, those patients are usually charged high. 
+Segmenting our data into clusters and dividing the clusters into the particular risk class of which most companies use to distinguish individuals. There are three varieties of risk class: preferred, standard, and smoker. The preferred health class is for those who are in superior health, posing the least risk to the insurer, and therefore deserve the lowest rates. The standard health class is where most individuals fall with a few minor health issues. They tend to pay normal prices for the same coverage. The smoker class is considered the riskiest one and has higher rates for individuals who have serious health issues.
+After segmenting into clusters and naming them according to their risk class category. For each cluster, we build specific models that is appropriate and provide the best results using Multiple Linear Regression.
+Why Multiple Linear Regression?
+Smoking is a huge factor as compared to other features. Just by being a smoker, the charge increases by quite a good amount regardless of age. Thereafter, the charges increase with age, bmi (higher health risk). Insurance is increasingly important with dependents for the regression model.
+Assumptions of Multiple Linear Regression
+Multiple linear regression analysis makes several key assumptions:
+1. There must be a linear relationship between the outcome variable and the independent variables.  
+2. Multivariate Normality: Multiple regression assumes that the residuals are normally distributed.
+3. No Multicollinearity: Multiple regression assumes that the independent variables are not highly correlated with each other.
+4. Homoscedasticity: This assumption states that the variance of error terms is similar across the values of the independent variables.  A plot of standardized residuals versus predicted values can show whether points are equally distributed across all values of the independent variables.
+Multiple linear regression requires at least two independent variables, which can be nominal, ordinal, or interval/ratio level variables.  A rule of thumb for the sample size is that regression analysis requires at least 20 cases per independent variable in the analysis. 
+Our plots show that there is a linear or curvilinear relationship among age, bmi numerical variables. And after doing clear analysis and visualization on the data, all the assumptions of the Multiple Linear Regression are met. Thus, providing us a set of reasons or a logical basis for our course of action to predict the Insurance charges among the clusters formed.
+
+d. Detail model development and output
+Cluster Analysis
+1. Modelling – K-Prototype
+The “clustMixType” package provides a user-friendly way for clustering mixed-type data in R given by the k-prototypes algorithm. A record is allocated to the cluster which has the most similar looking prototype (mean) of a cluster. The algorithm iterates in a manner like the k-means algorithm where for the numeric variables the mean and the categorical variables the mode minimizes the total within cluster distance. The dissimilarity measure for numeric attributes is the square Euclidean distance whereas the similarity measure on categorical attributes is the number of matching attributes between objects and cluster prototypes.
+The steps of the algorithm are: 
+1.	Initialization with random cluster prototypes 
+2.	For each observation do: 
+(a)	Assign observations to its closest prototype according to d() 
+(b) Update cluster prototypes by cluster-specific means/modes for all variables
+3. If any observations have swapped their cluster assignment in 2 or the maximum number of iterations have not been reached: repeat from 2                                                     
+Results:
+Elbow Plot
+The Elbow method looks at the total Within Sum of Square as a function of the number of clusters: One shoul
+
+Silhouette Plot
+The Average Silhouette method measures the quality of a clustering. That is, it determines how well each object lies within its cluster. A high average silhouette width indicates a good clustering
+Thus, the optimal number of clusters are K=3.
+
+```{r}
+#CLUSTER ANALYSIS
+#Modelling - K-Prototype
+#standardizing
+scaled.df <- sapply(newInsuranceData[c(1)], scale)
+unscaled.df <- newInsuranceData[,-c(1)]
+dim(scaled.df)
+dim(unscaled.df)
+newData <- cbind(scaled.df,unscaled.df)
+str(newData)
+
+# exploring no of clusters
+fviz_nbclust(newData, FUN = hcut, method = "wss")
+fviz_nbclust(newData, FUN = hcut, method = "silhouette") 
+
+set.seed(1)
+#The tested lambda values ranged from 0 to 5. A small lamnda value indicates that the clustering is
+#dominated by numeric attributes while a large lambda value implies that categorical attributes
+#dominate the clustering.
+
+# apply k prototyps
+kpres <- kproto(newData, 3)
+# Custering Visualisation
+clprofiles(kpres, newData, vars = NULL, col = NULL) # object$cluster and object$size are possible 
+
+test_stats <- cluster.stats(dist(newData),  kpres$cluster)
+test_stats
+
+sil <- silhouette(kpres$cluster, dist(newData))
+fviz_silhouette(sil)
+```
+
+2. Modelling – Hierarchal Clustering
+Algorithm: Agglomerative
+Agglomerative clustering will start with n clusters, where n is the number of observations, assuming that each of them is its own separate cluster. Then the algorithm will try to find most similar data points and group them, so they start forming clusters. Agglomerative clustering is better in discovering small clusters, and is used by most software; divisive clustering which is the opposite is better in discovering larger clusters
+Metric: Gower
+Gower is a distance measure that can be used to calculate distance between two entities whose attribute has a mix of categorical and numerical values. Gower’s dissimilarity measure is a weighted average of the distances computed for each variable, after scaling each variable to a [0,1] scale. 
+We used daisy function form the Cluster package to run Gower metric
+Also we used package Purr to determine the best distance (“Average”,” Single”, ”Complete”, ”Ward”). Ward’s method gets us the highest agglomerative coefficient
+
+```{R}
+#H-Clust
+#clustering H-clust by using metric = 'GOWER'
+insuranceDist<-daisy(newInsuranceData,metric="gower")
+summary(insuranceDist)
+str(insuranceDist)
+
+#Selecting hClustering method
+
+m <- c( "average", "single", "complete", "ward")
+names(m) <- c( "average", "single", "complete", "ward")
+ac <- function(x) {
+  agnes(newInsuranceData, method = x)$ac
+}
+map_dbl(m, ac)
+
+#hClustering using ward.D2
+fitH<- hclust(insuranceDist,"ward.D2")
+clusters<-cutree(fitH,3)
+plot(fitH)
+rect.hclust(fitH, k=3, border= 2:6, )
+abline(h = 3, col = 'red')
+for(i in 2:4){
+  plot(newInsuranceData, col=hclusters<- cutree(fitH, i))
+}
+
+newInsuranceData<-cbind(newInsuranceData,clusters)
+aggregate(newInsuranceData[,c(1)],list(newInsuranceData$clusters),mean)
+table(newInsuranceData$clusters)
+
+#Cluster Visualization
+theme_set(
+  theme_bw() +
+    theme(legend.position = "top")
+)
+
+insurance.gathered <- newInsuranceData %>%
+  as_data_frame() %>%
+  gather(key = "variable", value = "value",
+         -sex,-smoker, -region, -catAge, -catBMI,-charges)
+
+ggplot(insurance.gathered, aes(x = value, y = charges)) +
+  geom_point(aes(color =sex)) +
+  facet_wrap(~variable)+
+  scale_color_viridis_d()
+
+ggplot(insurance.gathered, aes(x = value, y = charges)) +
+  geom_point(aes(color =smoker)) +
+  facet_wrap(~variable)+
+  scale_color_viridis_d()
+
+ggplot(insurance.gathered, aes(x = value, y = charges)) +
+  geom_point(aes(color =region)) +
+  facet_wrap(~variable)+
+  scale_color_viridis_d()
+
+ggplot(insurance.gathered, aes(x = value, y = charges)) +
+  geom_point(aes(color =catAge)) +
+  facet_wrap(~variable)+
+  scale_color_viridis_d()
+
+ggplot(insurance.gathered, aes(x = value, y = charges)) +
+  geom_point(aes(color =catBMI)) +
+  facet_wrap(~variable)+
+  scale_color_viridis_d()
+```
+
+On comparing the clusters formed from each of the cluster analysis modelling. The clusters formed from H-clust is very apt as it clearly segments smokers and non-smokers. The first cluster formed from H-clust contains only smokers. The results of the K-prototype were only used to get clear vision of the cluster formation. The result of each cluster is tabulated below with specific name to each cluster.
+
+Cluster 1
+Smoker
+n: 94
+m: 18864.738
+Smoker
+Prime Age
+Overweight BMI
+Highest Risk 
+Highest Charges	
+
+Cluster 2
+Standard
+N: 396
+m: 7876.261
+Non Smoker
+Early & Mature Age
+Obesity & Overweight BMI
+Medium Risk
+Medium Charges	
+
+Cluster 3
+Preferred
+N: 615
+m: 7546.257
+Non Smoker
+Normal BMI
+Prime Age
+Lowest Risk
+Lowest Charges
+
+These results are further used to build multi linear regression models on each cluster and choose the best model to predict the charges.
+
+Multiple Linear Regression
+
+```{r}
+#Multi Linear Regression Analysis for premium charges calculations
+#Cluster 1
+Reg_Cluster1 <- newInsuranceData %>%
+  filter(clusters==1)
+str(Reg_Cluster1)
+dim(Reg_Cluster1)
+Reg_Cluster1<-Reg_Cluster1[,-c(3,7)] #Smoker column contains only 'Yes' values for all the data, thus it will not have any effect over prediction
+
+#model build
+#without outliers
+m1 <- lm(charges ~ catAge + catBMI ,data = Reg_Cluster1)
+summary(m1) 
+coef(m1)
+
+m2 <- lm(formula= charges ~ catAge + catBMI + sex ,data = Reg_Cluster1)
+summary(m2) 
+coef(m2)
+
+m3 <- lm(formula= charges ~ catAge + catBMI + sex + region ,data = Reg_Cluster1)
+summary(m3) 
+coef(m3)
+
+#Comparing the models
+anova(m1, m2) #the result shows a Df of 1 
+              #(indicating that the 2nd model has one additional parameter), 
+              #and a very large p-value (0.14 > 0.1). 
+              #This means that adding sex variable to the model 
+              #did not lead to a significantly improved fit over the model 1.
+              #Choose model 1
+
+anova(m1, m3) #the result shows a Df of 4 
+              #(indicating that the 3rd model has 4 additional parameter), 
+              #and a very large p-value (0.6409 > 0.1). 
+              #This means that adding sex, region variable to the model 
+              #did not lead to a significantly improved fit over the model 1.
+              #Choose model 1
+
+# Compute the analysis of variance for model 1A
+res.aov <- aov(charges ~ catAge + catBMI, data = Reg_Cluster1)
+# Summary of the analysis
+summary(res.aov) #As the p-value is less than the significance level 0.1, we can conclude that there are significant differences between the groups highlighted with “*" in the model summary.
+
+#Model 1A
+#Partition data
+set.seed(1) # set seed for reproducing the partition
+train.rows <- sample(row.names(Reg_Cluster1), dim(Reg_Cluster1)[1]*0.6) 
+train.data <- Reg_Cluster1[train.rows,] 
+colnames(train.data)
+dim(train.data)
+str(train.data)
+
+valid.rows <- sample(setdiff(rownames(Reg_Cluster1), train.rows))
+valid.data <- Reg_Cluster1[valid.rows,]
+colnames(valid.data)
+dim(valid.data)
+
+#Linear Regression on Charges (model 1A)
+charges.lm <- lm(charges ~ catAge + catBMI, data = train.data) 
+options(scipen = 999)
+summary(charges.lm) 
+coef(charges.lm)
+
+#Residuals and fitted plots
+Residuals.Values <- resid(charges.lm)
+Fitted.Values <- fitted(charges.lm)
+hist(Residuals.Values)
+plot(charges.lm,1) 
+
+#Since the data set of cluster 1 is very less,
+#during the sampling, if the valid data contains Mature_Age and Obese categories 
+#which is of only two records, has to be removed to carryout the prediction. 
+#(This step is necessary only if the valid.data contains any of the above two factors)
+valid.data<- valid.data %>%
+  filter(catAge!= 'Mature_Age' & catBMI!= 'Obese')
+
+# use predict() to make predictions on a new set.
+charges.lm.pred <- predict(charges.lm, valid.data)
+
+# use accuracy() to compute common accuracy measures.
+accuracy(charges.lm.pred, valid.data$charges)
+
+#Predicting results
+results.df <- data.frame(cbind(actuals = valid.data$charges, predicted = charges.lm.pred))
+results.df <- results.df %>%
+  mutate(error = results.df$actuals - results.df$predicted) %>%
+  round(., 2)
+results.df <- results.df %>%
+  mutate(percerror = paste0(round(results.df$error/results.df$actuals*100,2),"%"))
+
+kable(head(results.df))
+
+#Our model will be able to predict the insurance premium for 
+#policy holders under cluster1 with only having smoking habit 
+#with a mean difference of the result from the below output
+sprintf("The mean percent error is: %s%%", round(mean(results.df$error/results.df$actuals*100), 2))
+
+#predicting with new data using model 1A
+m1.lm.pred <- predict(m1, newdata = data.frame(sex='female', region='northwest', catAge='Prime_Age', catBMI='Obese'))
+m1.lm.pred
+
+
+#Cluster 2
+Reg_Cluster2 <- newInsuranceData %>%
+  filter(clusters==2)
+str(Reg_Cluster2)
+dim(Reg_Cluster2)
+
+Reg_Cluster2<-Reg_Cluster2[,-c(3,7)] #Smoker column contains only 'No' values for all the data, thus it will not have any effect over prediction
+
+#Model Build
+#Without outliers
+
+m1 <- lm(formula= charges ~ catAge + catBMI ,data = Reg_Cluster2)
+summary(m1) 
+coef(m1)
+
+m2 <- lm(formula= charges ~ catAge + catBMI + sex ,data = Reg_Cluster2)
+summary(m2)
+coef(m2)
+
+m3 <- lm(formula= charges ~ catAge + catBMI + sex + region ,data = Reg_Cluster2)
+summary(m3) #Choose model 3 with the help of summary function( high r-square value)
+coef(m3)
+
+m4 <- lm(formula= charges ~ catAge + region ,data = Reg_Cluster2)
+summary(m4) 
+coef(m4)
+
+m5 <- lm(formula= charges ~ catAge + sex ,data = Reg_Cluster2)
+summary(m5) 
+coef(m5)
+
+# Compute the analysis of variance for model 3
+res.aov <- aov(charges ~ catAge + catBMI + sex + region, data = Reg_Cluster2)
+# Summary of the analysis
+summary(res.aov) #As the p-value is less than the significance level 0.1, we can conclude that there are significant differences between the groups highlighted with “*" in the model summary.
+
+
+#Model 2A(Without outliers, lets call model 3 as model 2A)
+#Partition data
+set.seed(1) # set seed for reproducing the partition
+train.rows <- sample(row.names(Reg_Cluster2), dim(Reg_Cluster2)[1]*0.6) 
+train.data <- Reg_Cluster2[train.rows,] 
+colnames(train.data)
+dim(train.data)
+str(train.data)
+
+valid.rows <- sample(setdiff(rownames(Reg_Cluster2), train.rows))
+valid.data <- Reg_Cluster2[valid.rows,]
+colnames(valid.data)
+dim(valid.data)
+
+#Linear Regression on Charges(Model 2A)
+charges.lm <- lm(charges ~ catAge + catBMI + sex + region, data = train.data) 
+options(scipen = 999)
+summary(charges.lm) 
+coef(charges.lm)
+
+#Residuals and fitted plots
+Residuals.Values <- resid(charges.lm)
+Fitted.Values <- fitted(charges.lm)
+hist(Residuals.Values)
+plot(charges.lm,1) 
+
+# use predict() to make predictions on a new set.
+charges.lm.pred <- predict(charges.lm, valid.data)
+
+# use accuracy() to compute common accuracy measures.
+accuracy(charges.lm.pred, valid.data$charges)
+
+#Predicting results
+results.df <- data.frame(cbind(actuals = valid.data$charges, predicted = charges.lm.pred))
+results.df <- results.df %>%
+  mutate(error = results.df$actuals - results.df$predicted) %>%
+  round(., 2)
+results.df <- results.df %>%
+  mutate(percerror = paste0(round(results.df$error/results.df$actuals*100,2),"%"))
+
+kable(head(results.df))
+
+#Our model will be able to predict the insurance premium for 
+#policy holders under cluster 2 wtih not having smoking habit with a mean difference of the result from the below output
+sprintf("The mean percent error is: %s%%", round(mean(results.df$error/results.df$actuals*100), 2))
+
+
+#Cluster 3
+library(tidyverse)
+Reg_Cluster3 <- newInsuranceData %>%
+  filter(clusters==3)
+str(Reg_Cluster3)
+dim(Reg_Cluster3)
+
+Reg_Cluster3<-Reg_Cluster3[,-c(3,7)] #Smoker column contains only 'No' values for all the data, thus it will not have any effect over prediction
+
+#Model Build
+m1 <- lm(charges ~ catAge ,data = Reg_Cluster3)
+summary(m1) 
+coef(m1)
+
+m2 <- lm(formula= charges ~ catAge + catBMI ,data = Reg_Cluster3)
+summary(m2) 
+coef(m2)
+
+m3 <- lm(formula= charges ~ catAge + catBMI + sex ,data = Reg_Cluster3)
+summary(m3) 
+coef(m3)
+
+m4 <- lm(formula= charges ~ catAge + catBMI + sex + region ,data = Reg_Cluster3)
+summary(m4) 
+coef(m4)
+
+m5 <- lm(formula= charges ~ catAge + catBMI + region ,data = Reg_Cluster3)
+summary(m5)#Choose model 5
+coef(m5)
+
+m6 <- lm(formula= charges ~ catAge + region ,data = Reg_Cluster3)
+summary(m6)
+coef(m6)
+
+# Compute the analysis of variance for model 5
+res.aov <- aov(charges ~ catAge + catBMI + region, data = Reg_Cluster3)
+# Summary of the analysis
+summary(res.aov) #As the p-value is less than the significance level 0.1, we can conclude that there are significant differences between the groups highlighted with “*" in the model summary.
+
+#Model 3A (without outliers, naming model 5 from the above as model 3A)
+#Partition data
+set.seed(1) # set seed for reproducing the partition
+train.rows <- sample(row.names(Reg_Cluster3), dim(Reg_Cluster3)[1]*0.6) 
+train.data <- Reg_Cluster3[train.rows,] 
+colnames(train.data)
+dim(train.data)
+str(train.data)
+
+valid.rows <- sample(setdiff(rownames(Reg_Cluster3), train.rows))
+valid.data <- Reg_Cluster3[valid.rows,]
+colnames(valid.data)
+dim(valid.data)
+
+#Linear Regression on Charges(model 3A)
+charges.lm <- lm(charges ~ catAge + catBMI + region, data = train.data) 
+options(scipen = 999)
+summary(charges.lm) 
+coef(charges.lm)
+
+#Residuals and fitted plots
+Residuals.Values <- resid(charges.lm)
+Fitted.Values <- fitted(charges.lm)
+hist(Residuals.Values)
+plot(charges.lm,1) 
+
+# use predict() to make predictions on a new set.
+library(forecast)
+charges.lm.pred <- predict(charges.lm, valid.data)
+
+# use accuracy() to compute common accuracy measures.
+accuracy(charges.lm.pred, valid.data$charges)
+
+#Predicting results
+results.df <- data.frame(cbind(actuals = valid.data$charges, predicted = charges.lm.pred))
+results.df <- results.df %>%
+  mutate(error = results.df$actuals - results.df$predicted) %>%
+  round(., 2)
+results.df <- results.df %>%
+  mutate(percerror = paste0(round(results.df$error/results.df$actuals*100,2),"%"))
+
+kable(head(results.df))
+
+#Our model will be able to predict the insurance premium for 
+#policy holders under cluster3 wtih not having smoking habit with a mean difference of the result from the below output
+sprintf("The mean percent error is: %s%%", round(mean(results.df$error/results.df$actuals*100), 2))
+
+
+
+#---
+
+
+#WITH OUTLIERS
+#MLR ON 3 CLUSTERS WITH OUTLIERS
+#remove children variable from the dataset
+insurance_data1<-insurance_data[,-4]
+str(insurance_data1)
+
+#DATA PREPARATION
+#converting Age to Categorical variables
+catAge<- cut(insurance_data1$age,breaks=c(15,24,54,64),labels=c("Early_Age","Prime_Age","Mature_Age"))
+insurance_data1<-cbind(insurance_data1,catAge)
+table(insurance_data1$catAge)
+
+aggregate(insurance_data1$charges,list(insurance_data1$catAge),mean)
+
+#converting BMI to Categorical variables
+catBMI<- cut(insurance_data1$bmi,breaks=c(0,18.499,24.999,29.999,60),labels=c("Underweight","Normal","Overweight","Obese"))
+insurance_data1<-cbind(insurance_data1,catBMI)
+table(insurance_data1$catBMI)
+
+aggregate(insurance_data1$charges,list(insurance_data1$catBMI),mean)
+
+#Creating new Data Set
+newInsuranceData <- cbind(insurance_data1[c(6,2,4,5)],catAge,catBMI)
+str(newInsuranceData)
+summary(newInsuranceData)
+
+
+#H-Clust
+#clustering H-clust by using metric = 'GOWER'
+insuranceDist<-daisy(newInsuranceData,metric="gower")
+summary(insuranceDist)
+str(insuranceDist)
+
+#hClustering using ward.D2
+fitH<- hclust(insuranceDist,"ward.D2")
+clusters<-cutree(fitH,3)
+
+newInsuranceData<-cbind(newInsuranceData,clusters)
+aggregate(newInsuranceData[,c(1)],list(newInsuranceData$clusters),mean)
+table(newInsuranceData$clusters)
+
+#Multi Linear Regression Analysis for premium charges calculations
+#Cluster 1
+Reg_Cluster1 <- newInsuranceData %>%
+  filter(clusters==1)
+str(Reg_Cluster1)
+dim(Reg_Cluster1)
+Reg_Cluster1<-Reg_Cluster1[,-c(3,7)] #Smoker column contains only 'Yes' values for all the data, thus it will not have any effect over prediction
+
+#model build
+#with outliers
+m1 <- lm(charges ~ catAge + catBMI ,data = Reg_Cluster1)
+summary(m1) 
+coef(m1)
+
+# Compute the analysis of variance for model 1B
+res.aov <- aov(charges ~ catAge + catBMI, data = Reg_Cluster1)
+# Summary of the analysis
+summary(res.aov) #As the p-value is less than the significance level 0.1, we can conclude that there are significant differences between the groups highlighted with “*" in the model summary.
+
+#Model 1B
+#Partition data
+set.seed(1) # set seed for reproducing the partition
+train.rows <- sample(row.names(Reg_Cluster1), dim(Reg_Cluster1)[1]*0.6) 
+train.data <- Reg_Cluster1[train.rows,] 
+colnames(train.data)
+dim(train.data)
+str(train.data)
+
+valid.rows <- sample(setdiff(rownames(Reg_Cluster1), train.rows))
+valid.data <- Reg_Cluster1[valid.rows,]
+colnames(valid.data)
+dim(valid.data)
+
+#Linear Regression on Charges (model 1B)
+charges.lm <- lm(charges ~ catAge + catBMI, data = train.data) 
+options(scipen = 999)
+summary(charges.lm) 
+coef(charges.lm)
+
+#Residuals and fitted plots
+Residuals.Values <- resid(charges.lm)
+Fitted.Values <- fitted(charges.lm)
+hist(Residuals.Values)
+plot(charges.lm,1) 
+
+#Since the data set of cluster 1 is very less,
+#during the sampling, if the valid data contains Mature_Age and Obese categories 
+#which is of only two records, has to be removed to carryout the prediction. 
+#(This step is necessary only if the valid.data contains any of the above two factors)
+valid.data<- valid.data %>%
+  filter(catAge!= 'Mature_Age' & catBMI!= 'Obese')
+
+# use predict() to make predictions on a new set.
+charges.lm.pred <- predict(charges.lm, valid.data)
+
+# use accuracy() to compute common accuracy measures.
+accuracy(charges.lm.pred, valid.data$charges)
+
+#Predicting results
+results.df <- data.frame(cbind(actuals = valid.data$charges, predicted = charges.lm.pred))
+results.df <- results.df %>%
+  mutate(error = results.df$actuals - results.df$predicted) %>%
+  round(., 2)
+results.df <- results.df %>%
+  mutate(percerror = paste0(round(results.df$error/results.df$actuals*100,2),"%"))
+
+kable(head(results.df))
+
+#Our model will be able to predict the insurance premium for 
+#policy holders under cluster1 with only having smoking habit 
+#with a mean difference of the result from the below output
+sprintf("The mean percent error is: %s%%", round(mean(results.df$error/results.df$actuals*100), 2))
+
+#predicting with new data using model 1B
+m1.lm.pred <- predict(m1, newdata = data.frame(sex='female', region='northwest', catAge='Prime_Age', catBMI='Obese'))
+m1.lm.pred
+
+
+#Cluster 2
+Reg_Cluster2 <- newInsuranceData %>%
+  filter(clusters==2)
+str(Reg_Cluster2)
+dim(Reg_Cluster2)
+
+Reg_Cluster2<-Reg_Cluster2[,-c(3,7)] #Smoker column contains only 'No' values for all the data, thus it will not have any effect over prediction
+
+#Model Build
+#With outliers
+
+m3 <- lm(formula= charges ~ catAge + catBMI + sex + region ,data = Reg_Cluster2)
+summary(m3) 
+coef(m3)
+
+# Compute the analysis of variance for model 3
+res.aov <- aov(charges ~ catAge + catBMI + sex + region, data = Reg_Cluster2)
+# Summary of the analysis
+summary(res.aov) #As the p-value is less than the significance level 0.1, we can conclude that there are significant differences between the groups highlighted with “*" in the model summary.
+
+
+#Model 2B(With outliers, lets call model 3 as model 2B)
+#Partition data
+set.seed(1) # set seed for reproducing the partition
+train.rows <- sample(row.names(Reg_Cluster2), dim(Reg_Cluster2)[1]*0.6) 
+train.data <- Reg_Cluster2[train.rows,] 
+colnames(train.data)
+dim(train.data)
+str(train.data)
+
+valid.rows <- sample(setdiff(rownames(Reg_Cluster2), train.rows))
+valid.data <- Reg_Cluster2[valid.rows,]
+colnames(valid.data)
+dim(valid.data)
+
+#Linear Regression on Charges(Model 2B)
+charges.lm <- lm(charges ~ catAge + catBMI + sex + region, data = train.data) 
+options(scipen = 999)
+summary(charges.lm) 
+coef(charges.lm)
+
+#Residuals and fitted plots
+Residuals.Values <- resid(charges.lm)
+Fitted.Values <- fitted(charges.lm)
+hist(Residuals.Values)
+plot(charges.lm,1) 
+
+# use predict() to make predictions on a new set.
+charges.lm.pred <- predict(charges.lm, valid.data)
+
+# use accuracy() to compute common accuracy measures.
+accuracy(charges.lm.pred, valid.data$charges)
+
+#Predicting results
+results.df <- data.frame(cbind(actuals = valid.data$charges, predicted = charges.lm.pred))
+results.df <- results.df %>%
+  mutate(error = results.df$actuals - results.df$predicted) %>%
+  round(., 2)
+results.df <- results.df %>%
+  mutate(percerror = paste0(round(results.df$error/results.df$actuals*100,2),"%"))
+
+kable(head(results.df))
+
+#Our model will be able to predict the insurance premium for 
+#policy holders under cluster 2 wtih not having smoking habit with a mean difference of the result from the below output
+sprintf("The mean percent error is: %s%%", round(mean(results.df$error/results.df$actuals*100), 2))
+
+
+#Cluster 3
+library(tidyverse)
+Reg_Cluster3 <- newInsuranceData %>%
+  filter(clusters==3)
+str(Reg_Cluster3)
+dim(Reg_Cluster3)
+
+Reg_Cluster3<-Reg_Cluster3[,-c(3,7)] #Smoker column contains only 'No' values for all the data, thus it will not have any effect over prediction
+
+#Model Build
+
+m5 <- lm(formula= charges ~ catAge + catBMI + region ,data = Reg_Cluster3)
+summary(m5)
+coef(m5)
+
+# Compute the analysis of variance for model 5
+res.aov <- aov(charges ~ catAge + catBMI + region, data = Reg_Cluster3)
+# Summary of the analysis
+summary(res.aov) #As the p-value is less than the significance level 0.1, we can conclude that there are significant differences between the groups highlighted with “*" in the model summary.
+
+#Model 3B (with outliers, naming model 5 from the above as model 3B)
+#Partition data
+set.seed(1) # set seed for reproducing the partition
+train.rows <- sample(row.names(Reg_Cluster3), dim(Reg_Cluster3)[1]*0.6) 
+train.data <- Reg_Cluster3[train.rows,] 
+colnames(train.data)
+dim(train.data)
+str(train.data)
+
+valid.rows <- sample(setdiff(rownames(Reg_Cluster3), train.rows))
+valid.data <- Reg_Cluster3[valid.rows,]
+colnames(valid.data)
+dim(valid.data)
+
+#Linear Regression on Charges(model 3B)
+charges.lm <- lm(charges ~ catAge + catBMI + region, data = train.data) 
+options(scipen = 999)
+summary(charges.lm) 
+coef(charges.lm)
+
+#Residuals and fitted plots
+Residuals.Values <- resid(charges.lm)
+Fitted.Values <- fitted(charges.lm)
+hist(Residuals.Values)
+plot(charges.lm,1) 
+
+# use predict() to make predictions on a new set.
+library(forecast)
+charges.lm.pred <- predict(charges.lm, valid.data)
+
+# use accuracy() to compute common accuracy measures.
+accuracy(charges.lm.pred, valid.data$charges)
+
+#Predicting results
+results.df <- data.frame(cbind(actuals = valid.data$charges, predicted = charges.lm.pred))
+results.df <- results.df %>%
+  mutate(error = results.df$actuals - results.df$predicted) %>%
+  round(., 2)
+results.df <- results.df %>%
+  mutate(percerror = paste0(round(results.df$error/results.df$actuals*100,2),"%"))
+
+kable(head(results.df))
+
+#Our model will be able to predict the insurance premium for 
+#policy holders under cluster3 wtih not having smoking habit with a mean difference of the result from the below output
+sprintf("The mean percent error is: %s%%", round(mean(results.df$error/results.df$actuals*100), 2))
+```
+
+7. DSM EVALUATION
+Refer to the document
+
+8. DISCUSSION
+a. Based on the DSM what would your decision/recommendation be? Why? 
+Preferred: This is the lowest-risk category. People in this risk class are in excellent health, are typically younger, and have no other immediate cause for concern. Also, nonsmokers would reside in this group.
+Standard: This means typical risk, and for life insurers it means an average life expectancy. You may have some health issues in your family or in your past, which keeps you out of a preferred risk group. Age would ideally be following the early or mature group. Also, nonsmokers would reside in this group.
+Smoker: Classified as a higher risk than standard. Hence, premiums will also be higher. This class would include smokers, people with health issues or a risky past. Age would ideally be following the prime group.
+b. What are the limitations of the DSM you have used? 
+Clustering 1 
+1. Based on K-prototype gave the visualization across variables but not the stability.
+2. 1Models work between with numerical predictors than categorical predictors.
+Clustering 2
+1. Hierarchal clustering was greatly impacted by outliers, even though we removed them, still clusters were not completely accurate. The reason behind that was for the data as BMI did not correlate with charges, which was expected to be a main contributor.
+2. Another problem with clustering that they have not provided a clear cut between clusters, so charges values will overlap between clusters but still maintain a different mean that shows that the three levels of charges based on risk classes.
+Regression 1 
+After removing outliers, correlation between BMI and Charges drops which affects significance.
+Regression 2 
+1. After keeping outliers, adjusted R-square increases but errors increase as well
+2. Models work better with numerical predictors than categorical predictors
+c. What would you expect (most likely) to influence the decision‐making process? How does decision support mitigate some/all of these?
+1. The risk classes will affect the marketing 4 Ps (price, product, promotion and place) 
+2. The regression will affect the both the finance department which works on budgeting and the marketing department as well
+3. It is critical to regularly update the models to ensure accuracy of the risk classes and relevance to the business as well as the predictions
+
+d. What enhancements would you aim for to enable better decision support for this task?
+1. Updating models with more data points, because current data is not enough
+2. Collecting more variables as: family history, diseases, driving history, blood pressure, cholesterol,   profession and lifestyle habits, as the current variables are not explaining well the variability
+3. Enhancing the existing variables such as increasing the granularity of region 
+4. Exploring more risk classes  
+5. Conducting tests for heteroskedasticity, multicollinearity, linearity, normality
+6. Detecting and closely diagnosing the influence of outliers  
